@@ -5,3 +5,4 @@ redis
 psycopg2-binary
 minio
 python-jose
+python-multipart
