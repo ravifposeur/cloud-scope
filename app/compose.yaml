@@ -11,7 +11,7 @@ services:
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: ["CMD", "pg_isready", "-U", "admin", "-d", "cloudscope"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -144,6 +144,22 @@ services:
         condition: service_healthy
     profiles:
       - seed
+    networks:
+      - cloudscope-net
+
+  flower:
+    build: ./backend
+    container_name: cloudscope-flower
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_started
+    command: celery -A app.celery_config.celery flower --port=5555
     networks:
       - cloudscope-net
 
