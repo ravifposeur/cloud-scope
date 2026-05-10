@@ -55,21 +55,6 @@ services:
     networks:
       - cloudscope-net
 
-  celery:
-    build: ./backend
-    container_name: cloudscope-celery
-    command: celery -A app.celery_config worker --loglevel=info
-    env_file:
-      - .env
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - cloudscope-net
-
   fastapi:
     build: ./backend
     container_name: cloudscope-fastapi
@@ -91,13 +76,20 @@ services:
       - cloudscope-net
 
   worker:
-    build: ./worker
+    build:
+      context: .
+      dockerfile: ./worker/Dockerfile
     container_name: cloudscope-worker
+    command: celery -A app.celery_config worker --loglevel=info
     env_file:
       - .env
     volumes:
       - /tmp/cloudscope:/tmp/cloudscope
     depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
       minio:
         condition: service_healthy
     restart: unless-stopped
