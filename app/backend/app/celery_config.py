@@ -2,7 +2,7 @@ import os
 from celery import Celery
 
 # Ambil URL Redis dari environment variable (fallback ke localhost untuk dev lokal)
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+REDIS_URL = os.getenv("REDIS_URL")
 
 celery = Celery(
     "cloudscope-worker",

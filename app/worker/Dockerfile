@@ -19,8 +19,12 @@ ENV PATH="/opt/Fiji:${PATH}"
 
 WORKDIR /app
 
+COPY backend/requirements.txt /app/
+
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+COPY backend/ /app/
+
 COPY scripts/ /app/scripts/
 
 RUN mkdir -p /tmp/cloudscope
-
-CMD ["tail", "-f", "/dev/null"]
