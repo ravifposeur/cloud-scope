@@ -26,6 +26,15 @@ minio_client = Minio(
     secure=False,
 )
 
+minio_external_client = Minio(
+    endpoint="localhost:9000",
+    access_key=access_key,
+    secret_key=secret_key,
+    secure=False,
+    region="us-east-1",
+)
+
+
 def _cleanup_task_dir(file_path: str, task_id: str):
     if file_path and os.path.exists(file_path):
         task_dir = os.path.dirname(file_path)
@@ -77,7 +86,6 @@ def process_microscopy_image(self, file_path: str, project_id: str):
                 "/opt/Fiji/fiji",
                 "--headless",
                 "-Djava.awt.headless=true",
-                "--console",
                 "-macro",
                 "/app/scripts/analysis.ijm",
                 macro_args
@@ -116,7 +124,7 @@ def process_microscopy_image(self, file_path: str, project_id: str):
         )
 
         from datetime import datetime, timedelta
-        download_url = minio_client.presigned_get_object(
+        download_url = minio_external_client.presigned_get_object(
             bucket_name=bucket,
             object_name=object_name,
             expires=timedelta(hours=24),
