@@ -46,3 +46,8 @@ Thumbs.db
 
 #Nginx
 nginx/certs/
+
+# virtual Environment
+venv/
+.venv/
+ENV/

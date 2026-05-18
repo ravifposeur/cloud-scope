@@ -9,8 +9,12 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     openjdk-11-jdk \
+    # GAP 1 FIX: exiftool diperlukan oleh _strip_metadata_from_file() di tasks.py
+    # Tanpa ini, metadata sensitif tidak akan terhapus dari file sebelum masuk MinIO
+    libimage-exiftool-perl \
     && rm -rf /var/lib/apt/lists/*
 
+# 1. Download dan ekstrak Fiji
 RUN wget https://downloads.imagej.net/fiji/latest/fiji-latest-linux64-jdk.zip \
     && unzip fiji-latest-linux64-jdk.zip -d /opt \
     && rm fiji-latest-linux64-jdk.zip

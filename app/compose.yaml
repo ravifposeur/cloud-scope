@@ -1,11 +1,12 @@
 name: cloudscope
 
 services:
+
   postgres:
     image: postgres:16-alpine
     container_name: cloudscope-postgres
     env_file:
-      - .env
+      - .env.example
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -45,7 +46,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ./minio:/data
+      # FIX 2: Use the named volume consistently (removed orphaned bind mount)
+      - minio_data:/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -65,6 +67,8 @@ services:
       - /tmp/cloudscope:/tmp/cloudscope
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -90,6 +94,7 @@ services:
       - /tmp/cloudscope:/tmp/cloudscope
     depends_on:
       redis:
+        # FIX 1: Added redis with service_healthy so worker waits for broker
         condition: service_healthy
       postgres:
         condition: service_healthy
@@ -160,7 +165,7 @@ services:
 
 volumes:
   postgres_data:
-  minio_data:
+  minio_data:   # FIX 2: Now actually used by minio service
 
 networks:
   cloudscope-net:
