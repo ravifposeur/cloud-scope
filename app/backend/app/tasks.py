@@ -4,6 +4,7 @@ import shutil
 import logging
 import subprocess
 import json
+import re
 
 from minio import Minio
 from celery import states
@@ -55,33 +56,45 @@ def _cleanup_task_dir(file_path: str, task_id: str):
 
 def _scrub_metadata(meta_file_path: str):
     """
-    Privacy Engine: Pisahkan metadata mentah menjadi safe dan sensitive.
-    Returns: (safe_meta dict, sensitive_meta dict)
+    Privacy Engine Layer 1: Pisahkan metadata mentah menjadi safe dan sensitive.
+    Menggunakan Regex murni untuk membongkar blok OME-XML raksasa dari Fiji.
     """
     safe_meta = {}
     sensitive_meta = {}
-
-    SENSITIVE_KEYWORDS = [
-        "name", "patient", "institution", "date", "time",
-        "user", "id", "location", "operator", "serial",
-        "gps", "annotation", "sample", "clinic",
-    ]
 
     if not os.path.exists(meta_file_path):
         logger.warning(f"Metadata file not found: {meta_file_path}")
         return safe_meta, sensitive_meta
 
     with open(meta_file_path, "r", encoding="utf-8", errors="ignore") as f:
-        for line in f:
-            if "=" in line:
-                key, _, val = line.partition("=")
-                key = key.strip()
-                val = val.strip()
-                is_sensitive = any(kw in key.lower() for kw in SENSITIVE_KEYWORDS)
-                if is_sensitive:
-                    sensitive_meta[key] = val
-                else:
-                    safe_meta[key] = val
+        content = f.read()
+
+    # 1. Ekstrak Data Sains/Terbuka (Safe) lewat Radar Regex
+    x_match = re.search(r'SizeX="(\d+)"', content)
+    y_match = re.search(r'SizeY="(\d+)"', content)
+    z_match = re.search(r'SizeZ="(\d+)"', content)
+    dim_match = re.search(r'DimensionOrder="([^"]+)"', content)
+
+    if x_match: safe_meta["size_x"] = int(x_match.group(1))
+    if y_match: safe_meta["size_y"] = int(y_match.group(1))
+    if z_match: safe_meta["size_z"] = int(z_match.group(1))
+    if dim_match: safe_meta["dimension_order"] = dim_match.group(1)
+
+    # 2. Ekstrak Data Sensitif (Privacy Target)
+    user_match = re.search(r'UserName="([^"]+)"', content)
+    serial_match = re.search(r'SystemSerialNumber.*?Value>\[([^\]]+)\]', content, re.DOTALL)
+
+    if user_match:
+        sensitive_meta["operator_name"] = user_match.group(1)
+    else:
+        sensitive_meta["operator_name"] = "unknown"
+
+    if serial_match:
+        sensitive_meta["instrument_serial"] = serial_match.group(1)
+    else:
+        # Fallback cari identifier kamera simulation dari ZEN XML jika serial number absen
+        cam_match = re.search(r'CameraIdentifier.*?Value>\[([^\]]+)\]', content, re.DOTALL)
+        sensitive_meta["instrument_serial"] = cam_match.group(1) if cam_match else "unknown"
 
     return safe_meta, sensitive_meta
 
