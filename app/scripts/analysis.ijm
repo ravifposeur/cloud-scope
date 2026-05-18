@@ -1,44 +1,56 @@
-// scripts/analysis.ijm
+// =========================================================================
+// CLOUDSCOPE - STANDARD TIFF HEADLESS MACRO
+// =========================================================================
 
-// 1. Tangkap argumen dari command line (input="path",output="path")
-arg = getArgument();
-print("Arguments received: " + arg);
+setBatchMode(true); // Memaksa mode tanpa GUI untuk hemat RAM
 
-// 2. Parsing sederhana untuk mengambil path file
-// Kita cari posisi tanda kutip untuk mengambil path aslinya
-parts = split(arg, ",");
-inputPath = "";
-outputPath = "";
+// 1. Ambil Argumen
+args = getArgument();
+clean_args = replace(args, "\"", ""); // Bersihkan sisa tanda kutip jika ada
+argArray = split(clean_args, ",");
 
-for (i=0; i<parts.length; i++) {
-    if (indexOf(parts[i], "input=") >= 0) {
-        inputPath = substring(parts[i], indexOf(parts[i], "\"") + 1, lastIndexOf(parts[i], "\""));
-    }
-    if (indexOf(parts[i], "output=") >= 0) {
-        outputPath = substring(parts[i], indexOf(parts[i], "\"") + 1, lastIndexOf(parts[i], "\""));
-    }
+if (argArray.length < 2) {
+    print("ERROR FATAL: Argumen input dan output tidak lengkap!");
+    eval("script", "System.exit(1);");
 }
 
-// 3. Logika Analisis (Inti ImageJ)
-if (File.exists(inputPath)) {
-    open(inputPath);
+inputPath = argArray[0];
+outputPath = argArray[1];
 
-    // Kita lakukan analisis standar: Auto-Threshold & Measure
-    // Ini akan menghasilkan data Area, Mean, Min, Max, dll.
-    run("8-bit");
-    setAutoThreshold("Default");
-    run("Set Measurements...", "area mean standard modal min max display add");
-    run("Measure");
+print("Menerima instruksi dari Celery: " + inputPath + "," + outputPath);
+print("Target Input : " + inputPath);
+print("Target Output: " + outputPath);
 
-    // 4. Simpan hasil ke path CSV yang diminta
-    saveAs("Results", outputPath);
+// 2. BUKA FILE DENGAN FUNGSI STANDAR (BUKAN BIO-FORMATS)
+print("Membaca file OME-TIFF secara native...");
+open(inputPath);
 
-    // Tutup gambar agar tidak memenuhi RAM
-    close();
-    print("Analysis finished. Result saved to: " + outputPath);
-} else {
-    print("Error: Input file not found at " + inputPath);
+// Verifikasi
+if (nImages == 0) {
+    print("ERROR FATAL: Fiji gagal membuka citra OME-TIFF!");
+    eval("script", "System.exit(1);");
 }
 
-// Keluar dari ImageJ setelah selesai
+// 3. Konfigurasi Analisis
+run("Set Measurements...", "area mean standard min integrated redirect=None decimal=3");
+
+// 4. Perataan Z-Projection
+getDimensions(width, height, channels, slices, frames);
+if (slices > 1 || frames > 1 || channels > 1) {
+    print("Mendeteksi file multidimensi... Melakukan Z-Projection...");
+    run("Z Project...", "projection=[Max Intensity] all");
+}
+
+// 5. Eksekusi Pengukuran
+print("Menjalankan pengukuran kuantitatif...");
+run("Measure");
+
+// 6. Simpan
+print("Menyimpan hasil ke: " + outputPath);
+saveAs("Results", outputPath);
+
+// 7. Cleanup
+run("Clear Results");
+run("Close All");
+
 eval("script", "System.exit(0);");
