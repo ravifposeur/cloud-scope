@@ -1,11 +1,12 @@
 name: cloudscope
 
 services:
+
   postgres:
     image: postgres:16-alpine
     container_name: cloudscope-postgres
     env_file:
-      - .env
+      - .env.example
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -43,9 +44,10 @@ services:
       - "9001:9001"
       - "9000:9000"
     env_file:
-      - .env
+      - .env.example
     volumes:
-      - ./minio:/data
+      # FIX 2: Use the named volume consistently (removed orphaned bind mount)
+      - minio_data:/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -60,11 +62,13 @@ services:
     build: ./backend
     container_name: cloudscope-fastapi
     env_file:
-      - .env
+      - .env.example
     volumes:
       - /tmp/cloudscope:/tmp/cloudscope
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -85,11 +89,12 @@ services:
     container_name: cloudscope-worker
     command: celery -A app.celery_config worker --loglevel=info
     env_file:
-      - .env
+      - .env.example
     volumes:
       - /tmp/cloudscope:/tmp/cloudscope
     depends_on:
       redis:
+        # FIX 1: Added redis with service_healthy so worker waits for broker
         condition: service_healthy
       postgres:
         condition: service_healthy
@@ -131,7 +136,7 @@ services:
     container_name: cloudscope-seed
     command: python scripts/seed.py
     env_file:
-      - .env
+      - .env.example  
     depends_on:
       postgres:
         condition: service_healthy
@@ -148,19 +153,20 @@ services:
     ports:
       - "5555:5555"
     env_file:
-      - .env
+      - .env.example
     depends_on:
       redis:
         condition: service_healthy
       worker:
         condition: service_started
-    command: celery -A app.celery_config.celery flower --port=5555
+    # FIX 3: -A flag takes module path only, not the instance
+    command: celery -A app.celery_config flower --port=5555
     networks:
       - cloudscope-net
 
 volumes:
   postgres_data:
-  minio_data:
+  minio_data:   # FIX 2: Now actually used by minio service
 
 networks:
   cloudscope-net:
