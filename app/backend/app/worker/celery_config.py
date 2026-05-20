@@ -1,14 +1,15 @@
 import os
 from celery import Celery
+from app.core.config import settings
 
 # Ambil URL Redis dari environment variable (fallback ke localhost untuk dev lokal)
-REDIS_URL = os.getenv("REDIS_URL")
+REDIS_URL = settings.REDIS_URL
 
 celery = Celery(
     "cloudscope-worker",
     broker=f"{REDIS_URL}/0",
     backend=f"{REDIS_URL}/1",
-    include=["app.tasks"],  # Pastikan tasks ter-autodiscover
+    include=["app.worker.tasks"],  # Pastikan tasks ter-autodiscover
 )
 
 celery.conf.update(

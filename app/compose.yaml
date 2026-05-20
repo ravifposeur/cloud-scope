@@ -1,12 +1,11 @@
 name: cloudscope
 
 services:
-
   postgres:
     image: postgres:16-alpine
     container_name: cloudscope-postgres
     env_file:
-      - .env.example
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -87,7 +86,7 @@ services:
       context: .
       dockerfile: ./worker/Dockerfile
     container_name: cloudscope-worker
-    command: celery -A app.celery_config worker --loglevel=info
+    command: celery -A app.worker.celery_config worker --loglevel=info
     env_file:
       - .env
     volumes:
@@ -159,13 +158,13 @@ services:
         condition: service_healthy
       worker:
         condition: service_started
-    command: celery -A app.celery_config.celery flower --port=5555
+    command: celery -A app.worker.celery_config.celery flower --port=5555
     networks:
       - cloudscope-net
 
 volumes:
   postgres_data:
-  minio_data:   # FIX 2: Now actually used by minio service
+  minio_data:
 
 networks:
   cloudscope-net:

@@ -9,3 +9,7 @@ minio
 python-jose
 passlib
 flower
+pydantic-settings>=2.0.0
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
