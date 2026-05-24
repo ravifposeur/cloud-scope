@@ -6,6 +6,7 @@ import json
 import hashlib
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, status, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from celery.result import AsyncResult
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -13,6 +14,7 @@ from sqlalchemy import func
 from app.tasks import process_microscopy_image
 from app.database import engine, Base, get_db
 from app.models import AuditLog, AuditStatus, Metadata, PixelType
+from app.routers.auth_router import router as auth_router
 
 # Create all tables on startup (safe — skips existing tables)
 Base.metadata.create_all(bind=engine)
@@ -25,6 +27,23 @@ app = FastAPI(
     description="API Gateway untuk platform analisis citra mikroskop berbasis cloud.",
     version="0.1.0",
 )
+
+# ---------------------------------------------------------------------------
+# CORS Middleware — izinkan frontend dev server mengakses API
+# Di production, ganti origins dengan domain spesifik
+# ---------------------------------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------------
+# Register Routers
+# ---------------------------------------------------------------------------
+app.include_router(auth_router)
 
 TEMP_BASE_DIR = "/tmp/cloudscope"
 MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024  # 500 MB

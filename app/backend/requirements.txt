@@ -6,6 +6,8 @@ redis
 sqlalchemy
 psycopg2-binary
 minio
-python-jose
-passlib
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
+pydantic[email]
 flower

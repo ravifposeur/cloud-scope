@@ -61,6 +61,8 @@ services:
   fastapi:
     build: ./backend
     container_name: cloudscope-fastapi
+    ports:
+      - "8000:8000"
     env_file:
       - .env
     volumes:
@@ -109,6 +111,16 @@ services:
     networks:
       - cloudscope-net
 
+  frontend:
+    build: ./frontend
+    container_name: cloudscope-frontend
+    depends_on:
+      fastapi:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cloudscope-net
+
   nginx:
     image: nginx:1.25-alpine
     container_name: cloudscope-nginx
@@ -121,6 +133,8 @@ services:
     depends_on:
       fastapi:
         condition: service_healthy
+      frontend:
+        condition: service_started
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
