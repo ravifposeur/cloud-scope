@@ -3,6 +3,7 @@
 //  Matches FastAPI routes exactly:
 //    POST /api/auth/register
 //    POST /api/auth/login
+//    GET  /api/auth/me
 //    POST /api/upload/
 //    GET  /api/status/{task_id}
 // ─────────────────────────────────────────────────────────────
@@ -74,6 +75,35 @@ export async function login({ email, password }) {
   }
 
   return res.json();
+}
+
+/**
+ * GET /auth/me — Fetch current user profile using JWT token.
+ *
+ * @param {string} token - JWT access token
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function getCurrentUser(token) {
+  if (!token) {
+    return { success: false, error: 'Token tidak ditemukan.' };
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/me`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      return { success: false, error: `HTTP ${res.status}` };
+    }
+
+    const data = await res.json();
+    return { success: true, data };
+  } catch (err) {
+    console.error('[API] getCurrentUser error:', err);
+    return { success: false, error: 'Tidak dapat terhubung ke server.' };
+  }
 }
 
 // ── Analysis ──────────────────────────────────────────────────
