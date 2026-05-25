@@ -4,11 +4,14 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.db.models import AuditLog, AuditStatus, Metadata, PixelType
+from app.db.models import AuditLog, AuditStatus, Metadata, PixelType, User
+from app.core.config import settings
+from app.core.security import get_password_hash
+from app.api.routers.auth import UserCreate
 
 logger = logging.getLogger(__name__)
 
-DB_ENCRYPTION_KEY = os.getenv("DB_ENCRYPTION_KEY", "dev-secret-key-change-in-production")
+DB_ENCRYPTION_KEY = settings.ENCRYPTION_KEY
 
 def get_audit_log(db: Session, task_id: str):
     """Mengecek apakah log untuk task ini sudah ada."""
@@ -58,3 +61,34 @@ def save_analysis_result(db: Session, task_id: str, result_data: dict):
     except Exception as e:
         db.rollback()
         logger.error(f"[{task_id}] Gagal menyimpan ke DB: {e}")
+
+def get_user_by_email(db: Session, email: str):
+    """Mencari pengguna berdasarkan email."""
+    return db.query(User).filter(User.email == email).first()
+
+def get_user_by_username(db: Session, username: str):
+    """
+    Mencari pengguna berdasarkan entri name yang unik.
+    Mengembalikan instance User jika ditemukan, atau None jika tidak ada.
+    """
+    return db.query(User).filter(User.name == username).first()
+
+def create_user(db: Session, user_data: UserCreate):
+    """
+    Menyimpan pengguna baru dengan melakukan hashing pada password.
+    """
+    # 👇 PERBAIKAN: Panggil dari user_data.password
+    hashed_password = get_password_hash(user_data.password)
+
+    db_user = User(
+        email=user_data.email,
+        password=hashed_password,
+        name=user_data.name,
+        affiliation=user_data.affiliation
+    )
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user

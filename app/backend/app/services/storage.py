@@ -30,9 +30,9 @@ minio_external_client = Minio(
 )
 
 try:
-    if not minio_client.bucket_exists(bucket):
-        minio_client.make_bucket(bucket)
-        logger.info(f"Bucket '{bucket}' berhasil dibuat otomatis.")
+    if not minio_client.bucket_exists(bucket_name):
+        minio_client.make_bucket(bucket_name)
+        logger.info(f"Bucket '{bucket_name}' berhasil dibuat otomatis.")
 except Exception as e:
     logger.error(f"Gagal inisialisasi bucket MinIO: {e}")
 

@@ -2,13 +2,15 @@ import os
 import uuid
 import shutil
 import logging
-from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends, Form
 from celery.result import AsyncResult
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db import crud
+from app.db.models import User
 from app.worker.tasks import process_microscopy_image
+from app.api.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +20,21 @@ TEMP_BASE_DIR = "/tmp/cloudscope"
 MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024  # 500 MB
 os.makedirs(TEMP_BASE_DIR, exist_ok=True)
 
-
 @router.post("/upload/", status_code=status.HTTP_202_ACCEPTED)
-async def upload_image(file: UploadFile = File(...), project_id: str = "DEFAULT"):
+async def upload_image(
+    file: UploadFile = File(...),
+    project_id: str = Form("DEFAULT"),
+    current_user: User = Depends(get_current_user), # <--- Tipe data dikoreksi
+):
     """Menerima unggahan dan mengirim tugas ke Celery."""
     ALLOWED_EXTENSIONS = {".tif", ".tiff", ".czi", ".lif", ".nd2", ".png", ".jpg"}
     _, ext = os.path.splitext(file.filename or "")
 
     if ext.lower() not in ALLOWED_EXTENSIONS:
-        raise HTTPException(status_code=415, detail=f"Format ditolak. Gunakan: {ALLOWED_EXTENSIONS}")
+        raise HTTPException(
+            status_code=415,
+            detail=f"Format ditolak. Gunakan: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
 
     upload_id = str(uuid.uuid4())
     upload_dir = os.path.join(TEMP_BASE_DIR, upload_id)
@@ -38,6 +46,7 @@ async def upload_image(file: UploadFile = File(...), project_id: str = "DEFAULT"
     total_size = 0
     try:
         with open(file_location, "wb") as f:
+            # Chunked upload 1MB per iterasi untuk menghemat RAM
             while chunk := await file.read(1024 * 1024):
                 total_size += len(chunk)
                 if total_size > MAX_FILE_SIZE_BYTES:
@@ -51,10 +60,14 @@ async def upload_image(file: UploadFile = File(...), project_id: str = "DEFAULT"
         shutil.rmtree(upload_dir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Gagal menyimpan file.")
 
-    # Tembak ke Celery worker
+    # Tembak ke Celery worker (non-blocking)
     task = process_microscopy_image.delay(file_location, project_id=project_id)
-    return {"message": "Processing started", "task_id": task.id}
 
+    return {
+        "message": "Processing started",
+        "task_id": task.id,
+        "operator": current_user.name
+    }
 
 @router.get("/status/{task_id}")
 async def get_task_status(task_id: str, db: Session = Depends(get_db)):
