@@ -41,10 +41,10 @@ function progressFromStatus(info) {
 function StatusBadge({ status }) {
   if (!status) return null;
   const styles = {
-    PENDING:  'bg-warning-dim text-warning',
-    STARTED:  'bg-accent-subtle text-accent',
-    SUCCESS:  'bg-success-dim text-success',
-    FAILURE:  'bg-danger-dim text-danger',
+    PENDING: 'bg-warning-dim text-warning',
+    STARTED: 'bg-accent-subtle text-accent',
+    SUCCESS: 'bg-success-dim text-success',
+    FAILURE: 'bg-danger-dim text-danger',
   };
   const cls = styles[status] || styles.PENDING;
   return (
@@ -135,7 +135,7 @@ function UploadPanel({ onTaskCreated }) {
 
   return (
     <div className="bg-surface border border-bg-border rounded-2xl p-8 shadow-[var(--cs-shadow-md)]">
-      <h2 className="text-[1.375rem] font-semibold tracking-tight mb-5">📤 Upload Image</h2>
+      <h2 className="text-[1.375rem] font-semibold tracking-tight mb-5">Upload Image</h2>
 
       <form className="flex flex-col gap-4" onSubmit={submit}>
         {/* Drop zone */}
@@ -151,7 +151,7 @@ function UploadPanel({ onTaskCreated }) {
         >
           {!file ? (
             <>
-              <div className="text-[2.5rem] mb-3">🧬</div>
+              <div className="text-[2.5rem] mb-3">🔬</div>
               <p className="text-txt font-medium">
                 Drag & drop your microscopy file
               </p>
@@ -216,7 +216,7 @@ function UploadPanel({ onTaskCreated }) {
         >
           {loading
             ? <><span className="inline-block w-[18px] h-[18px] border-2 border-bg-border border-t-accent rounded-full animate-spin" /> Uploading…</>
-            : '🚀 Start Analysis'}
+            : 'Start Analysis'}
         </button>
       </form>
     </div>
@@ -344,12 +344,12 @@ export default function DashboardPage() {
           prev.map((t) =>
             t.taskId === taskId
               ? {
-                  ...t,
-                  status: data.status,
-                  result: data.result,
-                  error: data.error,
-                  info: data.status === 'STARTED' ? data.result : t.info,
-                }
+                ...t,
+                status: data.status,
+                result: data.result,
+                error: data.error,
+                info: data.status === 'STARTED' ? data.result : t.info,
+              }
               : t
           )
         );
@@ -421,11 +421,11 @@ export default function DashboardPage() {
   const initials = (user?.email || user?.name || 'U').charAt(0).toUpperCase();
 
   return (
-    <div className="min-h-screen grid grid-rows-[auto_1fr]">
+    <div className="min-h-screen grid grid-rows-[auto_1fr] mt-16">
       {/* ── Navbar ── */}
-      <nav className="flex items-center justify-between gap-4 bg-surface border-b border-bg-border h-[60px] px-8 max-sm:px-4">
+      <nav className="fixed top-0 w-full flex items-center justify-between gap-4 bg-surface border-b border-bg-border h-[60px] px-8 max-sm:px-4">
         <div className="flex items-center gap-2.5 text-txt font-bold text-lg tracking-tight">
-          <span className="bg-accent-glow border border-accent rounded-md text-accent text-base px-1.5 py-1">🔬</span>
+          <img src="/favicon.svg" alt="CloudScope" className="w-7 h-7 rounded-md" />
           CloudScope
         </div>
 
@@ -448,7 +448,7 @@ export default function DashboardPage() {
               {initials}
             </div>
             <span className="text-sm text-txt-secondary max-sm:hidden">
-              {user?.email || user?.name || 'Researcher'}
+              {user?.name || user?.email || 'Researcher'}
             </span>
           </div>
 
@@ -491,25 +491,25 @@ export default function DashboardPage() {
 
         {/* How it works */}
         <div className="bg-surface border border-bg-border rounded-2xl p-8 shadow-[var(--cs-shadow-md)]">
-          <h2 className="text-[1.375rem] font-semibold tracking-tight mb-5">🧱 Analysis Pipeline</h2>
+          <h2 className="text-[1.375rem] font-semibold tracking-tight mb-5">Analysis Pipeline</h2>
           <div className="flex flex-col gap-3.5">
             {[
-              { step: '01', icon: '📁', title: 'Upload', desc: 'File saved to secure temp storage. Task queued in Celery.' },
-              { step: '02', icon: '🔄', title: 'Convert', desc: 'bfconvert transforms your file to OME-TIFF format.' },
-              { step: '03', icon: '🧬', title: 'Fiji Analysis', desc: 'Headless Fiji runs the analysis macro and generates a CSV.' },
-              { step: '04', icon: '🔒', title: 'Privacy Scrub', desc: 'Operator names & instrument serials removed. Raw metadata stripped.' },
-              { step: '05', icon: '☁️', title: 'Store', desc: 'Clean results uploaded to MinIO. Links returned to you.' },
-            ].map(({ step, icon, title, desc }) => (
+              { step: '01', title: 'Upload', desc: 'File saved to secure temp storage. Task queued in Celery.' },
+              { step: '02', title: 'Convert', desc: 'bfconvert transforms your file to OME-TIFF format.' },
+              { step: '03', title: 'Fiji Analysis', desc: 'Headless Fiji runs the analysis macro and generates a CSV.' },
+              { step: '04', title: 'Privacy Scrub', desc: 'Operator names & instrument serials removed. Raw metadata stripped.' },
+              { step: '05', title: 'Store', desc: 'Clean results uploaded to MinIO. Links returned to you.' },
+            ].map(({ step, title, desc }) => (
               <div key={step} className="flex gap-4 items-start">
                 <div className="bg-accent-subtle border border-accent/20 rounded-md text-accent
-                  font-mono text-[0.72rem] font-semibold py-0.5 px-1.5 shrink-0 mt-0.5">
+                  font-mono text-sm font-semibold py-0.5 px-1.5 shrink-0 mt-0.5">
                   {step}
                 </div>
                 <div>
-                  <div className="font-semibold text-txt text-[0.9rem]">
-                    {icon} {title}
+                  <div className="font-semibold text-txt text-lg">
+                    {title}
                   </div>
-                  <div className="text-txt-muted text-[0.8rem] mt-0.5 leading-relaxed">
+                  <div className="text-txt-muted text-sm mt-0.5 leading-relaxed">
                     {desc}
                   </div>
                 </div>
@@ -521,7 +521,7 @@ export default function DashboardPage() {
         {/* Task history */}
         <div className="col-span-full bg-surface border border-bg-border rounded-2xl p-8 shadow-[var(--cs-shadow-md)]">
           <div className="flex justify-between items-center mb-5">
-            <h2 className="text-[1.375rem] font-semibold tracking-tight">📋 Analysis Jobs</h2>
+            <h2 className="text-[1.375rem] font-semibold tracking-tight">Analysis Jobs</h2>
             {tasks.length > 0 && (
               <span className="text-[0.8rem] text-txt-muted">
                 {stats.running > 0 && '🟢 Auto-refreshing every 3s'}
