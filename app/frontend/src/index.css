@@ -1,0 +1,248 @@
+/* ==========================================================================
+   CloudScope — Tailwind CSS v4 Design System
+   Unified theme with light/dark mode support
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+/* --- Class-based dark mode --- */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* --- Theme-aware CSS variables --- */
+:root {
+  /* Backgrounds — light */
+  --cs-bg-base: #ffffff;
+  --cs-bg-surface: #f8fafc;
+  --cs-bg-elevated: #f1f5f9;
+  --cs-bg-border: #e2e8f0;
+  --cs-bg-dark: #f0f4f8;
+
+  /* Text — light */
+  --cs-txt: #0f172a;
+  --cs-txt-secondary: #475569;
+  --cs-txt-muted: #94a3b8;
+
+  /* Auth card — light */
+  --cs-card-glass: rgba(255, 255, 255, 0.85);
+  --cs-input-bg: rgba(0, 0, 0, 0.04);
+  --cs-input-focus: rgba(0, 0, 0, 0.07);
+  --cs-border-input: rgba(0, 0, 0, 0.12);
+  --cs-subtle: rgba(0, 0, 0, 0.06);
+
+  /* Shadows — light */
+  --cs-shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --cs-shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+  --cs-shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+  --cs-glow: 0 0 24px rgba(14, 165, 233, 0.15);
+  --cs-auth-shadow: 0 8px 32px rgba(0,0,0,0.1);
+
+  /* Orbs — light */
+  --cs-orb-1: rgba(99, 102, 241, 0.08);
+  --cs-orb-2: rgba(6, 182, 212, 0.06);
+  --cs-orb-3: rgba(139, 92, 246, 0.06);
+  --cs-orb-4: rgba(14, 165, 233, 0.05);
+  --cs-orb-5: rgba(236, 72, 153, 0.04);
+
+  /* Scrollbar */
+  --cs-scroll-track: #f1f5f9;
+  --cs-scroll-thumb: #cbd5e1;
+  --cs-scroll-hover: #94a3b8;
+}
+
+.dark {
+  /* Backgrounds — dark */
+  --cs-bg-base: #0b0f1a;
+  --cs-bg-surface: #111827;
+  --cs-bg-elevated: #1a2233;
+  --cs-bg-border: #1f2d45;
+  --cs-bg-dark: #0a0e1a;
+
+  /* Text — dark */
+  --cs-txt: #f1f5f9;
+  --cs-txt-secondary: #94a3b8;
+  --cs-txt-muted: #4b6380;
+
+  /* Auth card — dark */
+  --cs-card-glass: rgba(17, 24, 39, 0.7);
+  --cs-input-bg: rgba(255, 255, 255, 0.06);
+  --cs-input-focus: rgba(255, 255, 255, 0.1);
+  --cs-border-input: rgba(255, 255, 255, 0.12);
+  --cs-subtle: rgba(255, 255, 255, 0.08);
+
+  /* Shadows — dark */
+  --cs-shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --cs-shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  --cs-shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
+  --cs-glow: 0 0 24px rgba(14, 165, 233, 0.25);
+  --cs-auth-shadow: 0 8px 32px rgba(0,0,0,0.5);
+
+  /* Orbs — dark */
+  --cs-orb-1: rgba(99, 102, 241, 0.15);
+  --cs-orb-2: rgba(6, 182, 212, 0.12);
+  --cs-orb-3: rgba(139, 92, 246, 0.12);
+  --cs-orb-4: rgba(14, 165, 233, 0.1);
+  --cs-orb-5: rgba(236, 72, 153, 0.08);
+
+  /* Scrollbar */
+  --cs-scroll-track: #0b0f1a;
+  --cs-scroll-thumb: #1f2d45;
+  --cs-scroll-hover: #4b6380;
+}
+
+/* --- Static Tailwind Theme Tokens --- */
+@theme {
+  /* Theme-aware colors (resolve via CSS vars) */
+  --color-bg-base: var(--cs-bg-base);
+  --color-surface: var(--cs-bg-surface);
+  --color-elevated: var(--cs-bg-elevated);
+  --color-bg-border: var(--cs-bg-border);
+  --color-bg-dark: var(--cs-bg-dark);
+
+  --color-txt: var(--cs-txt);
+  --color-txt-secondary: var(--cs-txt-secondary);
+  --color-txt-muted: var(--cs-txt-muted);
+
+  --color-card-glass: var(--cs-card-glass);
+  --color-input-bg: var(--cs-input-bg);
+  --color-input-focus: var(--cs-input-focus);
+  --color-border-input: var(--cs-border-input);
+  --color-subtle: var(--cs-subtle);
+
+  /* Brand — static */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-light: rgba(99, 102, 241, 0.15);
+  --color-primary-glow: rgba(99, 102, 241, 0.4);
+
+  --color-accent: #0ea5e9;
+  --color-accent-dim: #0284c7;
+  --color-accent-glow: rgba(14, 165, 233, 0.18);
+  --color-accent-subtle: rgba(14, 165, 233, 0.08);
+
+  /* Status — static */
+  --color-success: #22c55e;
+  --color-success-dim: rgba(34, 197, 94, 0.15);
+  --color-success-light: rgba(34, 197, 94, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-dim: rgba(245, 158, 11, 0.15);
+  --color-danger: #ef4444;
+  --color-danger-dim: rgba(239, 68, 68, 0.15);
+  --color-danger-light: rgba(239, 68, 68, 0.12);
+
+  /* Typography */
+  --font-family-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+}
+
+/* --- Base Layer --- */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-family-sans);
+    background-color: var(--cs-bg-base);
+    color: var(--cs-txt);
+    overflow-x: hidden;
+    min-height: 100vh;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  a { text-decoration: none; color: var(--color-accent); }
+  a:hover { text-decoration: underline; }
+  button { cursor: pointer; font-family: inherit; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--cs-scroll-track); }
+  ::-webkit-scrollbar-thumb { background: var(--cs-scroll-thumb); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cs-scroll-hover); }
+}
+
+/* --- Keyframe Animations --- */
+@keyframes float-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -50px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(40px, 20px) scale(1.02); }
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes icon-pulse {
+  0%, 100% { box-shadow: 0 0 20px var(--color-primary-glow); }
+  50% { box-shadow: 0 0 40px var(--color-primary-glow), 0 0 60px rgba(6, 182, 212, 0.2); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* --- Utility Classes --- */
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.5s ease;
+}
+.btn-shimmer:hover::after {
+  left: 100%;
+}
+
+.grid-overlay {
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+/* Password strength bar fills */
+.strength-weak { width: 25%; background: var(--color-danger); }
+.strength-fair { width: 50%; background: var(--color-warning); }
+.strength-good { width: 75%; background: #a3e635; }
+.strength-strong { width: 100%; background: var(--color-success); }
+
+/* Progress bar animation */
+.progress-animated {
+  animation: progress-pulse 2s ease-in-out infinite;
+}
+
+/* Fade animations */
+.fade-up { animation: fade-up 0.35s ease both; }
+.fade-in { animation: fade-in 0.3s ease both; }
