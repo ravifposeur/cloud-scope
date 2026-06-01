@@ -33,6 +33,12 @@ function progressFromStatus(info) {
   return isNaN(n) ? 0 : n;
 }
 
+// Memotong localhost dan menggantinya dengan rute Nginx
+function fixStorageUrl(url) {
+  if (!url) return url;
+  return url.replace('http://localhost:9000', '/storage');
+}
+
 /**
  * Status badge component.
  * @param {string} status - Task status
@@ -316,7 +322,8 @@ function TaskCard({ task, onRefresh }) {
                 <div className="bg-bg-base border border-bg-border rounded-md py-3 px-4">
                   <div className="text-txt-muted text-xs font-medium tracking-wider uppercase">Results CSV</div>
                   <div className="text-txt font-mono text-sm mt-0.5 break-all">
-                    <a href={result.result_csv_url} target="_blank" rel="noreferrer" title={result.result_csv_url}>
+                    {/* 👇 BUNGKUS DENGAN fixStorageUrl */}
+                    <a href={fixStorageUrl(result.result_csv_url)} target="_blank" rel="noreferrer" title={result.result_csv_url}>
                       📊 Download CSV
                     </a>
                   </div>
@@ -326,7 +333,8 @@ function TaskCard({ task, onRefresh }) {
                 <div className="bg-bg-base border border-bg-border rounded-md py-3 px-4">
                   <div className="text-txt-muted text-xs font-medium tracking-wider uppercase">Safe Metadata</div>
                   <div className="text-txt font-mono text-sm mt-0.5 break-all">
-                    <a href={result.safe_metadata_url} target="_blank" rel="noreferrer" title={result.safe_metadata_url}>
+                    {/* 👇 BUNGKUS DENGAN fixStorageUrl */}
+                    <a href={fixStorageUrl(result.safe_metadata_url)} target="_blank" rel="noreferrer" title={result.safe_metadata_url}>
                       📄 View JSON
                     </a>
                   </div>
