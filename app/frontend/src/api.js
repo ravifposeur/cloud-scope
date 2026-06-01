@@ -38,6 +38,7 @@ async function request(path, options = {}) {
     try {
       const json = await res.json();
       detail = json.detail || JSON.stringify(json);
+    // eslint-disable-next-line no-empty
     } catch {}
     throw new Error(detail);
   }
@@ -70,6 +71,7 @@ export async function login({ email, password }) {
 
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;
+    // eslint-disable-next-line no-empty
     try { const j = await res.json(); detail = j.detail || detail; } catch {}
     throw new Error(detail);
   }
@@ -112,10 +114,11 @@ export async function getCurrentUser(token) {
  * POST /upload/
  * Sends the file as multipart/form-data. Returns { task_id, message, operator }.
  */
-export async function uploadImage(file, projectId = 'DEFAULT') {
+export async function uploadImage(file, projectId = 'DEFAULT', macroType = 'DEFAULT') {
   const form = new FormData();
   form.append('file', file);
   form.append('project_id', projectId);
+  form.append('macro_type', macroType);
 
   return request('/upload/', {
     method: 'POST',

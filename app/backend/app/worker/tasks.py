@@ -9,6 +9,16 @@ from app.services import storage, privacy, fiji_engine
 
 logger = logging.getLogger(__name__)
 
+# =====================================================================
+# KAMUS MAKRO (Bisa dipindah ke .env atau config.py nantinya)
+# =====================================================================
+MACRO_REGISTRY = {
+    "PROJECT_CELLCOUNT": "/app/scripts/macro_cell.ijm",
+    "PROJECT_EDGEDETECT": "/app/scripts/macro_edge.ijm",    # Tambahkan project_id dan makro spesifik komunitas di sini
+}
+DEFAULT_MACRO = "/app/scripts/analysis.ijm"
+
+
 def _cleanup_task_dir(file_path: str, task_id: str):
     """Hapus direktori sementara milik sebuah task setelah selesai."""
     if file_path and os.path.exists(file_path):
@@ -51,6 +61,10 @@ def process_microscopy_image(self, file_path: str, project_id: str):
         raw_meta_path = os.path.join(task_dir, f"{base_name}_raw_meta.txt")
         safe_json_path = os.path.join(task_dir, f"{base_name}_safe_meta.json")
 
+        # 👇 PENENTUAN MAKRO DINAMIS BERDASARKAN PROJECT_ID
+        target_macro = MACRO_REGISTRY.get(project_id, DEFAULT_MACRO)
+        logger.info(f"[{task_id}] Makro yang dipilih: {target_macro}")
+
         # ==============================================================
         # STAGE 1: KONVERSI (Memanggil fiji_engine)
         # ==============================================================
@@ -62,7 +76,8 @@ def process_microscopy_image(self, file_path: str, project_id: str):
         # STAGE 2: FIJI HEADLESS (Memanggil fiji_engine)
         # ==============================================================
         self.update_state(state=states.STARTED, meta={"progress": "50%", "status": "Running Fiji analysis"})
-        fiji_engine.run_headless_analysis(converted_tiff_path, output_csv_path, raw_meta_path, task_id)
+        # 👇 INJEKSI PARAMETER target_macro KE DALAM ENGINE
+        fiji_engine.run_headless_analysis(converted_tiff_path, output_csv_path, raw_meta_path, task_id, macro_path=target_macro)
         logger.info(f"[{task_id}] STAGE 2 Complete.")
 
         # ==============================================================
@@ -98,6 +113,7 @@ def process_microscopy_image(self, file_path: str, project_id: str):
             "result_csv_url": urls["csv_url"],
             "safe_metadata_url": urls["json_url"],
             "sensitive_metadata": all_meta_for_api,
+            "used_macro": target_macro # 👇 TAMBAHAN AGAR BISA DIBACA OLEH crud.py
         }
 
     except SoftTimeLimitExceeded:

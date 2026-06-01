@@ -23,7 +23,7 @@ def run_bfconvert(input_path: str, output_path: str, task_id: str):
     return output_path
 
 
-def run_headless_analysis(tiff_path: str, output_csv: str, output_meta: str, task_id: str):
+def run_headless_analysis(tiff_path: str, output_csv: str, output_meta: str, task_id: str, macro_path: str = "/app/scripts/analysis.ijm"):
     """Menjalankan makro Fiji dalam mode headless."""
     logger.info(f"[{task_id}] Menjalankan komputasi Fiji...")
     macro_args = f'input="{tiff_path}",output="{output_csv}",meta="{output_meta}"'
@@ -33,7 +33,7 @@ def run_headless_analysis(tiff_path: str, output_csv: str, output_meta: str, tas
         "--headless",
         "-Djava.awt.headless=true",
         "-macro",
-        "/app/scripts/analysis.ijm",
+        macro_path,
         macro_args
     ]
 

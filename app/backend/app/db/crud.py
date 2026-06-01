@@ -45,7 +45,7 @@ def save_analysis_result(db: Session, task_id: str, result_data: dict):
 
         # --- 2. Simpan Audit Log ---
         audit_record = AuditLog(
-            macro_text=sensitive.get("macro_text", "analysis.ijm"),
+            macro_text=sensitive.get("used_macro", "analysis.ijm"),
             imagej_version=sensitive.get("imagej_version", "unknown"),
             bioformats_version=sensitive.get("bioformats_version", "unknown"),
             parameters=json.dumps({"project_id": result_data.get("project_id", "DEFAULT")}),

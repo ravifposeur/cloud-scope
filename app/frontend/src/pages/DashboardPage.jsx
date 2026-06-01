@@ -87,6 +87,7 @@ function MoonIcon() {
 function UploadPanel({ onTaskCreated }) {
   const [file, setFile] = useState(null);
   const [project, setProject] = useState('DEFAULT');
+  const [macro, setMacro] = useState('DEFAULT'); // 👇 State baru untuk makro
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -122,10 +123,18 @@ function UploadPanel({ onTaskCreated }) {
     setLoading(true);
     setError('');
     try {
-      const res = await uploadImage(file, project.trim() || 'DEFAULT');
-      onTaskCreated({ taskId: res.task_id, filename: file.name, operator: res.operator, project: project });
+      // 👇 Mengirimkan string project dan opsi macro ke fungsi API
+      const res = await uploadImage(file, project.trim() || 'DEFAULT', macro);
+      onTaskCreated({ 
+        taskId: res.task_id, 
+        filename: file.name, 
+        operator: res.operator, 
+        project: project.trim() || 'DEFAULT',
+        macro: macro 
+      });
       setFile(null);
       setProject('DEFAULT');
+      setMacro('DEFAULT');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -182,21 +191,51 @@ function UploadPanel({ onTaskCreated }) {
           )}
         </div>
 
-        {/* Project ID */}
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="project-id" className="text-[0.8125rem] font-medium text-txt-secondary tracking-wide uppercase">
-            Project ID
-          </label>
-          <input
-            id="project-id"
-            className="bg-bg-base border border-bg-border rounded-md text-txt font-sans text-[0.9375rem]
-              py-2.5 px-3.5 outline-none w-full transition-all duration-200
-              focus:border-accent focus:ring-[3px] focus:ring-accent-glow placeholder:text-txt-muted"
-            type="text"
-            value={project}
-            onChange={(e) => setProject(e.target.value)}
-            placeholder="DEFAULT"
-          />
+        {/* Group Input: Project ID & Macro Type (Dibuat berdampingan/seiras) */}
+        <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+          {/* Project ID (Text Input) */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="project-id" className="text-[0.8125rem] font-medium text-txt-secondary tracking-wide uppercase">
+              Project ID string
+            </label>
+            <input
+              id="project-id"
+              className="bg-bg-base border border-bg-border rounded-md text-txt font-sans text-[0.9375rem]
+                py-2.5 px-3.5 outline-none w-full transition-all duration-200
+                focus:border-accent focus:ring-[3px] focus:ring-accent-glow placeholder:text-txt-muted"
+              type="text"
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
+              placeholder="DEFAULT"
+            />
+          </div>
+
+          {/* Macro Selection (Dropdown Berwarna Sama) */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="macro-type" className="text-[0.8125rem] font-medium text-txt-secondary tracking-wide uppercase">
+              Analysis Method (Macro)
+            </label>
+            <div className="relative w-full">
+              <select
+                id="macro-type"
+                className="bg-bg-base border border-bg-border rounded-md text-txt font-sans text-[0.9375rem]
+                  py-2.5 pl-3.5 pr-10 outline-none w-full transition-all duration-200
+                  focus:border-accent focus:ring-[3px] focus:ring-accent-glow appearance-none cursor-pointer"
+                value={macro}
+                onChange={(e) => setMacro(e.target.value)}
+              >
+                <option value="DEFAULT">Standard Analysis</option>
+                <option value="PROJECT_CELLCOUNT">Cell Counting</option>
+                <option value="PROJECT_EDGEDETECT">Edge Detection</option>
+              </select>
+              {/* Custom SVG Chevron Arrow untuk Dropdown */}
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-txt-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                  <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
 
         {error && (
