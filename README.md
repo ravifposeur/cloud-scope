@@ -45,61 +45,60 @@ Berikut diagram alur data dalam format **Mermaid** yang dapat dirender langsung 
 
 ```mermaid
 flowchart TB
-    subgraph PUBLIC["🌐 Public Internet"]
-        Client[Web Browser / API Client]
+    subgraph PUBLIC["Public Internet"]
+        Client["Web Browser / API Client"]
     end
 
-    subgraph EDGE["☁️ Cloudflare Edge"]
-        Tunnel[Cloudflare Tunnel<br/>SSL + Dynamic URL]
+    subgraph EDGE["Cloudflare Edge"]
+        Tunnel["Cloudflare Tunnel - SSL + Dynamic URL"]
     end
 
-    subgraph LOCAL["🖥️ Bare-Metal Edge Node (x86_64)"]
+    subgraph LOCAL["Bare-Metal Edge Node x86_64"]
         subgraph PROXY["Reverse Proxy Layer"]
-            Nginx[Nginx<br/>Port 80/443]
+            Nginx["Nginx - Port 80/443"]
         end
 
         subgraph GATEWAY["API Gateway Layer"]
-            FastAPI[FastAPI<br/>JWT Auth + Routing]
+            FastAPI["FastAPI - JWT Auth + Routing"]
         end
 
         subgraph MESSAGE["Message Queue Layer"]
-            Redis[Redis<br/>Broker + Result Backend]
-            Celery[Celery Worker<br/>Task Executor]
+            Redis["Redis - Broker + Result Backend"]
+            Celery["Celery Worker - Task Executor"]
         end
 
         subgraph PROCESSING["Processing Layer"]
-            BF[Bio-Formats bftools<br/>Format Conversion]
-            Fiji[ImageJ/Fiji Headless<br/>Macro Execution]
-            Scrub[Privacy Scrubbing Engine<br/>Metadata Sanitization]
+            BF["Bio-Formats bftools - Format Conversion"]
+            Fiji["ImageJ Fiji Headless - Macro Execution"]
+            Scrub["Privacy Scrubbing Engine - Metadata Sanitization"]
         end
 
         subgraph STORAGE["Storage Layer"]
-            PostgreSQL[PostgreSQL<br/>User Data + Audit Log]
-            MinIO[MinIO<br/>Object Storage]
-            Shared[/tmp/cloudscope<br/>Shared Volume]
+            PostgreSQL["PostgreSQL - User Data + Audit Log"]
+            MinIO["MinIO - Object Storage"]
+            SharedVolume["Shared Volume - Temporary Files"]
         end
     end
 
     Client -->|HTTPS| Tunnel
     Tunnel -->|HTTP| Nginx
-    Nginx -->|/api/*| FastAPI
-    Nginx -->|/storage/*| MinIO
-    
+    Nginx -->|"/api/*"| FastAPI
+    Nginx -->|"/storage/*"| MinIO
+
     FastAPI -->|Store Task| Redis
     FastAPI -->|Log Action| PostgreSQL
-    FastAPI -->|Upload File| Shared
-    
+    FastAPI -->|Upload File| SharedVolume
+
     Redis -->|Pull Task| Celery
-    Celery -->|Read File| Shared
+    Celery -->|Read File| SharedVolume
     Celery -->|Convert| BF
     BF -->|OME-TIFF| Fiji
     Fiji -->|Raw Results| Scrub
     Scrub -->|Clean Results| Celery
     Celery -->|Upload Results| MinIO
     Celery -->|Update Status| Redis
-    Celery -->|Cleanup| Shared
+    Celery -->|Cleanup| SharedVolume
 ```
-
 ### Alur Request Pengguna
 
 ```mermaid
