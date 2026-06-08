@@ -1,117 +1,244 @@
-Berikut dokumen lengkap hasil penggabungan dengan gaya logo tech stack (menggunakan badge/shields.io) dan bagian deployment diubah ke versi lama (dengan Cloudflare Tunnel).
+Berikut dokumen lengkap dengan logo tech stack bergaya profesional dan alur sistem yang sudah di-beautify:
 
 ---
 
-# 🔬 CloudScope
+# 🔬 CloudScope: Decentralized Microscopy Analytics Platform
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
-[![Celery](https://img.shields.io/badge/Celery-5.3+-brightgreen.svg)](https://docs.celeryq.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-316192.svg)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7.0+-DC382D.svg)](https://redis.io/)
-[![MinIO](https://img.shields.io/badge/MinIO-S3--compatible-C72A48.svg)](https://min.io/)
-[![Cloudflare](https://img.shields.io/badge/Cloudflare-Tunnel-F38020.svg)](https://www.cloudflare.com/)
-[![License](https://img.shields.io/badge/License-GNU-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Celery](https://img.shields.io/badge/Celery-37814A?style=for-the-badge&logo=celery&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![MinIO](https://img.shields.io/badge/MinIO-C72A48?style=for-the-badge&logo=minio&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
 
-**CloudScope** adalah arsitektur *backend* modular berbasis **microservices** untuk memproses dan mengorkestrasi analisis berkas gambar mikroskopi (seperti `.czi`, `.tif`, `.lif`). 
+CloudScope adalah arsitektur backend modular berbasis **microservices** untuk mengonversi, memproses, dan mengorkestrasi analisis berkas citra mikroskopi multidimensi (seperti `.czi`, `.tif`, `.lif`).
 
-Sistem ini dirancang dengan prinsip desentralisasi dan kemandirian data, memanfaatkan:
-- 🔄 Antrean asinkron (Celery + Redis) untuk komputasi berat
-- 🗄️ Sistem penyimpanan objek internal (MinIO)
-- 🔒 Mesin privasi untuk membersihkan metadata sensitif (*scrubbing*) sebelum hasil analisis disimpan
-- 🌐 Akses global tanpa NAT/port forwarding (Cloudflare Tunnel)
+Sistem ini didesain menggunakan prinsip komputasi *Bare-Metal Edge Node* untuk penelitian akar rumput. Komputasi berat dijauhkan dari ketergantungan korporasi cloud, memanfaatkan prosesor lokal x86 secara maksimal sambil tetap terhubung secara global melalui jaringan tepi (*Edge Tunneling*).
 
 ---
 
-## 📚 Daftar Isi
-- [Fitur Utama](#fitur-utama)
-- [Arsitektur Singkat](#arsitektur-singkat)
-- [Teknologi](#teknologi)
-- [Prasyarat](#prasyarat)
-- [Instalasi & Konfigurasi](#instalasi--konfigurasi)
-- [Menjalankan Sistem](#menjalankan-sistem)
-- [Menggunakan API](#menggunakan-api)
-- [Pemeliharaan (Garbage Collection)](#pemeliharaan-garbage-collection)
-- [Kontribusi](#kontribusi)
-- [Lisensi](#lisensi)
-
----
-
-## ✨ Fitur Utama
+## Fitur Utama
 
 | Fitur | Deskripsi |
 |-------|------------|
-| 📤 Unggah asinkron | File besar langsung disimpan ke MinIO + task Celery |
-| 🧹 Pembersih metadata | Otomatis hapus data sensitif dari hasil analisis |
-| 📊 Log audit lengkap | Setiap aksi tercatat di PostgreSQL |
-| 🐳 Siap produksi | Docker Compose, health checks, volume persisten |
-| 🔐 Autentikasi JWT | Endpoint terproteksi dengan token |
-| 🧪 Dokumentasi interaktif | Swagger UI di `/api/docs` |
-| 🌍 Akses global publik | Cloudflare Tunnel, SSL otomatis, tanpa port forwarding |
+| Headless Fiji Engine | Eksekusi makro ImageJ/Fiji (`.ijm`) kustom tanpa antarmuka grafis untuk efisiensi RAM |
+| Dynamic Macro Registry | Pilihan makro dinamis (Standard, Cell Counting, Edge Detection) yang disuntikkan langsung via API |
+| Format Agnostic | Integrasi `bftools` (Bio-Formats) untuk mengonversi format instrumen proprietary menjadi OME-TIFF standar |
+| Privacy Scrubbing Engine | Penghapusan metadata instrumen sensitif dari berkas hasil analisis sebelum dipublikasikan |
+| Edge-Cloud Tunneling | Akses global menggunakan Cloudflare Quick Tunnel tanpa konfigurasi router atau IP publik statis |
+| Asynchronous Task Queue | Orkestrasi tugas berat dengan Celery dan Redis tanpa membebani Gateway API |
 
 ---
 
-## 🧱 Arsitektur Singkat
+Berikut diagram alur data dalam format **Mermaid** yang dapat dirender langsung di GitHub, GitLab, atau editor Markdown yang mendukung Mermaid:
 
-```text
-Client → Cloudflare Tunnel → FastAPI (Gateway) → Redis/Celery → Worker → MinIO
-                                   ↓                    ↓
-                              PostgreSQL            Analisis (OpenCV, dll)
-                                   ↓                    ↓
-                              Log audit           Hasil → MinIO + scrubbing
+---
+
+## Arsitektur & Alur Data
+
+### Diagram Infrastruktur
+
+```mermaid
+flowchart TB
+    subgraph PUBLIC["🌐 Public Internet"]
+        Client[Web Browser / API Client]
+    end
+
+    subgraph EDGE["☁️ Cloudflare Edge"]
+        Tunnel[Cloudflare Tunnel<br/>SSL + Dynamic URL]
+    end
+
+    subgraph LOCAL["🖥️ Bare-Metal Edge Node (x86_64)"]
+        subgraph PROXY["Reverse Proxy Layer"]
+            Nginx[Nginx<br/>Port 80/443]
+        end
+
+        subgraph GATEWAY["API Gateway Layer"]
+            FastAPI[FastAPI<br/>JWT Auth + Routing]
+        end
+
+        subgraph MESSAGE["Message Queue Layer"]
+            Redis[Redis<br/>Broker + Result Backend]
+            Celery[Celery Worker<br/>Task Executor]
+        end
+
+        subgraph PROCESSING["Processing Layer"]
+            BF[Bio-Formats bftools<br/>Format Conversion]
+            Fiji[ImageJ/Fiji Headless<br/>Macro Execution]
+            Scrub[Privacy Scrubbing Engine<br/>Metadata Sanitization]
+        end
+
+        subgraph STORAGE["Storage Layer"]
+            PostgreSQL[PostgreSQL<br/>User Data + Audit Log]
+            MinIO[MinIO<br/>Object Storage]
+            Shared[/tmp/cloudscope<br/>Shared Volume]
+        end
+    end
+
+    Client -->|HTTPS| Tunnel
+    Tunnel -->|HTTP| Nginx
+    Nginx -->|/api/*| FastAPI
+    Nginx -->|/storage/*| MinIO
+    
+    FastAPI -->|Store Task| Redis
+    FastAPI -->|Log Action| PostgreSQL
+    FastAPI -->|Upload File| Shared
+    
+    Redis -->|Pull Task| Celery
+    Celery -->|Read File| Shared
+    Celery -->|Convert| BF
+    BF -->|OME-TIFF| Fiji
+    Fiji -->|Raw Results| Scrub
+    Scrub -->|Clean Results| Celery
+    Celery -->|Upload Results| MinIO
+    Celery -->|Update Status| Redis
+    Celery -->|Cleanup| Shared
 ```
 
-> **Prinsip:** Setiap mikroservis mandiri, data disimpan dalam object storage, komputasi berat dijalankan di *background worker*, dan layanan diekspos ke publik via tunneling terenkripsi.
+### Alur Request Pengguna
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant CF as Cloudflare Tunnel
+    participant Nginx as Nginx
+    participant FastAPI as FastAPI
+    participant DB as PostgreSQL
+    participant Redis as Redis
+    participant Worker as Celery Worker
+    participant BF as bftools
+    participant Fiji as ImageJ
+    participant MinIO as MinIO
+
+    Client->>CF: 1. Upload File (.czi/.lif)
+    CF->>Nginx: 2. Forward Request
+    Nginx->>FastAPI: 3. Route to /api/upload
+    
+    FastAPI->>FastAPI: 4. Validate JWT Token
+    FastAPI->>DB: 5. Log Upload Action
+    FastAPI->>Redis: 6. Create Celery Task
+    FastAPI-->>Client: 7. Return task_id
+    
+    Redis->>Worker: 8. Worker Picks Task
+    Worker->>BF: 9. Convert to OME-TIFF
+    BF-->>Worker: 10. Converted File
+    Worker->>Fiji: 11. Execute Macro
+    Fiji-->>Worker: 12. Analysis Results
+    Worker->>Worker: 13. Scrub Metadata
+    Worker->>MinIO: 14. Upload Results
+    Worker->>Redis: 15. Update Task Status
+    
+    loop Polling Status
+        Client->>FastAPI: 16. GET /status/{task_id}
+        FastAPI->>Redis: 17. Check Status
+        FastAPI-->>Client: 18. Return Progress
+    end
+    
+    Client->>MinIO: 19. Download Results (via Nginx)
+```
+
+### Komponen Sistem
+
+```mermaid
+flowchart LR
+    subgraph BACKEND["Backend Services"]
+        direction TB
+        A[FastAPI<br/>REST Gateway]
+        B[Celery<br/>Task Queue]
+        C[Redis<br/>Message Broker]
+    end
+
+    subgraph STORAGE_SERVICES["Storage Services"]
+        direction TB
+        D[PostgreSQL<br/>Relational DB]
+        E[MinIO<br/>S3 Storage]
+    end
+
+    subgraph WORKER_SERVICES["Worker Services"]
+        direction TB
+        F[Bio-Formats<br/>Converter]
+        G[ImageJ/Fiji<br/>Analyst]
+        H[Scrubber<br/>Metadata Cleaner]
+    end
+
+    subgraph NETWORK["Network Layer"]
+        I[Nginx<br/>Reverse Proxy]
+        J[Cloudflared<br/>Tunnel Agent]
+    end
+
+    J --> I
+    I --> A
+    A <--> B
+    B <--> C
+    A <--> D
+    B --> F --> G --> H
+    H --> E
+    A --> E
+```
+
+---
+## Technical Stack
+
+### Backend Core
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Celery](https://img.shields.io/badge/Celery-37814A?style=for-the-badge&logo=celery&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+
+### Database & Storage
+
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![MinIO](https://img.shields.io/badge/MinIO-C72A48?style=for-the-badge&logo=minio&logoColor=white)
+
+### Image Processing
+
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+
+### Infrastructure & Networking
+
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
 
 ---
 
-## 🛠️ Teknologi
+## Prasyarat Sistem
 
-| Komponen | Teknologi |
-|----------|-----------|
-| **API Gateway** | FastAPI (Python) [![FastAPI](https://img.shields.io/badge/FastAPI-109989?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/) |
-| **Task Queue** | Celery + Redis [![Celery](https://img.shields.io/badge/Celery-37814A?logo=celery&logoColor=white)](https://docs.celeryq.dev/) [![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)](https://redis.io/) |
-| **Database** | PostgreSQL [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)](https://www.postgresql.org/) |
-| **Object Storage** | MinIO [![MinIO](https://img.shields.io/badge/MinIO-C72A48?logo=minio&logoColor=white)](https://min.io/) |
-| **Container** | Docker + Compose [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/) |
-| **Tunneling** | Cloudflare Tunnel [![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?logo=cloudflare&logoColor=white)](https://www.cloudflare.com/) |
-| **Analisis gambar** | OpenCV / scikit-image [![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/) |
+| Persyaratan | Spesifikasi |
+|-------------|-------------|
+| Arsitektur CPU | x86_64 (Intel/AMD) - ARM tidak didukung karena stabilitas JVM |
+| Memori (RAM) | Minimal 16 GB untuk host |
+| Perangkat Lunak | Docker Engine ≥ 24.0, Docker Compose Plugin |
+| Jaringan | Koneksi internet outbound aktif (tidak perlu port forwarding) |
 
 ---
 
-## 📋 Prasyarat
+## Instalasi & Konfigurasi
 
-Sebelum memulai, pastikan lingkungan Anda sudah terpasang:
+### 1. Kloning Repositori
 
-- **Git**
-- **Docker** (≥ 20.10)
-- **Docker Compose Plugin** (≥ 2.0)
-- **Bash** (untuk skrip `cleanup.sh`)
-- **Arsitektur CPU:** x86_64 (Intel/AMD Ryzen) — ARM tidak direkomendasikan karena stabilitas JVM
-- **RAM:** Minimal 16 GB untuk host
-- **Koneksi internet outbound aktif** (tidak perlu port forwarding)
-
----
-
-## ⚙️ Instalasi & Konfigurasi
-
-### 1. Kloning repositori
 ```bash
 git clone https://github.com/username-anda/cloudscope.git
 cd cloudscope
 ```
 
-### 2. Buat berkas konfigurasi rahasia
-Salin berkas contoh dan **segera ubah nilai bawaan** (terutama password, kunci JWT, dan kredensial MinIO):
+### 2. Konfigurasi Lingkungan
+
+Buat berkas `.env` dari contoh:
+
 ```bash
 cp .env.example .env
-nano .env   # atau vim / code .
 ```
 
-> ⚠️ **Keamanan:** Jangan pernah melakukan commit file `.env` ke repositori publik. Nilai di dalamnya harus kuat dan unik.
+Edit kredensial bawaan:
 
-Contoh isi `.env`:
 ```env
 # Database Credentials
 POSTGRES_USER=admin
@@ -125,159 +252,207 @@ MINIO_ROOT_PASSWORD=rahasia_komunitas
 # Celery & Redis Configuration
 CELERY_BROKER_URL=redis://cloudscope-redis:6379/0
 CELERY_RESULT_BACKEND=redis://cloudscope-redis:6379/0
-
-# JWT Secret (ubah dengan nilai random yang kuat)
-JWT_SECRET=super_rahasia_jwt_key_ganti_ini
 ```
 
-### 3. Siapkan volume bersama (*shared volume*)
-Worker dan API perlu berbagi file sementara untuk proses unggah. Buat direktori dan beri izin:
+### 3. Persiapan Volume Bersama
+
 ```bash
 sudo mkdir -p /tmp/cloudscope
 sudo chmod 777 /tmp/cloudscope
 ```
 
-> Direktori ini akan di-mount ke container sebagai `/app/shared`.
+### 4. Konfigurasi Pembatasan Sumber Daya
 
-### 4. Konfigurasi Pembatasan Sumber Daya (Resource Limits)
+Di dalam `docker-compose.yml`, komponen worker dibatasi sumber dayanya:
 
-Karena pemrosesan makro ImageJ/Fiji bersifat rakus memori (memory-intensive), sistem dilengkapi dengan pembatas (cgroups) di level kontainer agar tidak memicu OOM Killer pada mesin host.
-
-Di dalam berkas `docker-compose.yml`, komponen worker telah disetel batasannya:
 ```yaml
 worker:
   deploy:
     resources:
       limits:
-        memory: 4g      # Batas memori maksimum per kontainer worker
-        cpus: "2"       # Alokasi core CPU untuk pemrosesan paralel
+        memory: 4g
+        cpus: "2"
 ```
 
 ---
 
-## 🚀 Menjalankan Sistem
+## Eksekusi Deployment
 
-Arsitektur CloudScope terdiri dari microservices terisolasi: **Nginx** (Gateway), **FastAPI** (Backend), **PostgreSQL** (Database), **Redis** (Message Broker), **MinIO** (Object Storage), **Celery** (Task Queue), dan **Cloudflared** (Tunneling).
+### Menjalankan Seluruh Layanan
 
-Build dan jalankan semua container di latar belakang:
 ```bash
 docker compose up -d --build --force-recreate
 ```
 
-Verifikasi kesehatan sistem (healthcheck) dari seluruh kontainer:
+### Memeriksa Status Kontainer
+
 ```bash
 docker compose ps
 ```
-> Pastikan kontainer inti memiliki status `Up (healthy)`.
 
-### 🌐 Akses Layanan (Lokal)
+Pastikan kontainer inti berstatus `Up (healthy)`.
 
-| Layanan | URL | Catatan |
-|---------|-----|---------|
-| Swagger UI (dokumentasi API) | `http://localhost/api/docs` | Gunakan untuk testing interaktif |
-| MinIO Console | `http://localhost:9001` | Login dengan `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` dari `.env` |
+### Mengaktifkan Tunneling Publik
 
-### 🌍 Eksposur Publik (Cloudflare Edge Tunneling)
+```bash
+docker compose up -d quick-tunnel
+```
 
-Untuk memenuhi kriteria aksesibilitas awan (cloud accessibility), sistem menggunakan agen Cloudflare Tunnel secara kontainerisasi. Ini melewati NAT lokal dan menerbitkan antarmuka Nginx (Port 80) ke URL publik dengan enkripsi SSL otomatis.
+### Mendapatkan URL Publik
 
-Untuk mendapatkan URL publik yang sedang aktif (bersifat dinamis per sesi deployment), periksa log dari kontainer tunnel:
 ```bash
 docker compose logs quick-tunnel | grep "trycloudflare.com"
 ```
 
-**Output yang Diharapkan:**
-```plaintext
-INF | Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):
+Output yang diharapkan:
+
+```text
+INF | Your quick Tunnel has been created! Visit it at:
 INF | https://[nama-domain-acak].trycloudflare.com
 ```
 
-> Tautan inilah yang dibagikan kepada pengguna/penguji untuk mengakses Dasbor React secara global. URL bersifat dinamis dan berubah setiap sesi deployment ulang.
+---
+
+## Monitoring & Telemetri
+
+### Flower Dashboard (Monitoring Celery)
+
+Akses `http://localhost:5555` untuk melihat:
+- Metrik antrean
+- Status worker
+- Tugas sukses/gagal
+- Waktu eksekusi real-time
+
+### Pemantauan Sumber Daya
+
+```bash
+docker stats
+```
+
+### Investigasi Log Analitik
+
+```bash
+docker compose logs worker --tail 50
+```
+
+### Log Gateway dan Proxy
+
+```bash
+docker compose logs nginx
+docker compose logs fastapi
+```
 
 ---
 
-## 🧪 Menggunakan API
+## Panduan Interaksi API
 
-Berikut contoh alur lengkap menggunakan **Swagger UI** atau `curl`.
+### 1. Autentikasi Pengguna
 
-### 1. Daftar akun baru
 ```http
-POST /auth/register
-Content-Type: application/json
+POST /api/auth/login
+Content-Type: application/x-www-form-urlencoded
 
+username=peneliti@example.com&password=Rahasia123!
+```
+
+Response:
+
+```json
 {
-  "email": "peneliti@example.com",
-  "password": "Rahasia123!"
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer"
 }
 ```
 
-### 2. Login → ambil JWT token
+### 2. Inisiasi Analisis Citra
+
 ```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "peneliti@example.com",
-  "password": "Rahasia123!"
-}
-```
-→ Simpan token yang dikembalikan.
-
-### 3. Autentikasi di Swagger UI
-- Klik tombol **Authorize** (ikon gembok)
-- Masukkan token: `Bearer <token_anda>`
-
-### 4. Unggah berkas mikroskopi
-```http
-POST /analysis/upload/
+POST /api/upload/
 Content-Type: multipart/form-data
+Authorization: Bearer <token>
 
-file: (pilih file .czi / .tif / .lif)
+file: (file .czi / .tif)
+project_id: "PROJECT_ALPHA"
+macro_type: "PROJECT_CELLCOUNT"
 ```
-**Respon:** `{"task_id": "uuid-celery", "status": "queued"}`
 
-### 5. Cek status tugas
+Response:
+
+```json
+{
+  "task_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "queued"
+}
+```
+
+### 3. Pemantauan Status Tugas
+
 ```http
-GET /analysis/status/{task_id}
+GET /api/status/{task_id}
+Authorization: Bearer <token>
 ```
-Setelah selesai, hasil akan tersimpan di bucket MinIO dengan metadata yang sudah dibersihkan (*scrubbed*).
+
+Response saat selesai:
+
+```json
+{
+  "status": "SUCCESS",
+  "result": {
+    "csv_url": "/storage/results/task_id/data.csv",
+    "metadata_url": "/storage/results/task_id/metadata.json"
+  }
+}
+```
 
 ---
 
-## 🧹 Pemeliharaan (Garbage Collection)
+## Pemeliharaan Berkala
 
-Proses analisis menghasilkan file sementara di `/tmp/cloudscope` dan cache worker. Kami sediakan skrip otomatis.
+### Pembersihan Manual
 
-### Menjalankan manual
 ```bash
 chmod +x cleanup.sh
 ./cleanup.sh
 ```
 
-### Otomatis dengan cron (produksi)
-Agar berjalan setiap hari Minggu jam 02:00 pagi:
+### Otomatisasi dengan Cron (Produksi)
+
 ```bash
 crontab -e
-# Tambahkan baris (sesuaikan path absolut repositori):
-0 2 * * 0 /path/ke/cloudscope/cleanup.sh >> /tmp/cloudscope_cleanup.log 2>&1
+```
+
+Tambahkan baris berikut:
+
+```bash
+0 2 * * 0 /path/ke/cloudscope/cleanup.sh >> /var/log/cloudscope_cleanup.log 2>&1
 ```
 
 ---
 
-## 🤝 Kontribusi
+## Akses Layanan
 
-Proyek ini dikembangkan untuk mendukung penelitian akar rumput secara mandiri.  
-Kami sangat terbuka terhadap:
-- 🐛 Laporan bug
-- 💡 Usulan fitur
-- 🔧 Pull request (perbaikan kode, optimasi worker, peningkatan keamanan)
-
-Silakan buka *issue* atau *pull request* di repositori GitHub.
+| Layanan | URL Lokal | Keterangan |
+|---------|-----------|-------------|
+| Swagger UI (Dokumentasi API) | `http://localhost/api/docs` | Testing interaktif |
+| MinIO Console | `http://localhost:9001` | Manajemen objek storage |
+| Flower Dashboard | `http://localhost:5555` | Monitoring Celery |
 
 ---
 
-## 📄 Lisensi
+## Kontribusi
 
-Distribusikan di bawah lisensi **GNU**. Lihat berkas `LICENSE` untuk informasi lebih lanjut.
+Proyek ini dikembangkan untuk mendukung penelitian mandiri di lingkungan akademis dan komunitas. Kontribusi terbuka untuk:
+
+- Laporan bug dan masalah keamanan
+- Usulan fitur baru
+- Pull request untuk optimasi worker dan peningkatan kode
+
+Silakan buka issue atau pull request di repositori GitHub.
+
+---
+
+## Lisensi
+
+Distribusikan di bawah lisensi **GNU General Public License**. Lihat berkas `LICENSE` untuk informasi lengkap.
 
 ---
