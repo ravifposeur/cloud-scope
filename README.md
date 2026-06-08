@@ -1,7 +1,3 @@
-Berikut dokumen lengkap dengan logo tech stack bergaya profesional dan alur sistem yang sudah di-beautify:
-
----
-
 # 🔬 CloudScope: Decentralized Microscopy Analytics Platform
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
